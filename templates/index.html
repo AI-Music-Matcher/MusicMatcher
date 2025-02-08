@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Music Matcher</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="dark-theme">
+    <header class="hero">
+        <h1>🎵 AI Music Matcher 🎶</h1>
+        <p>Discover the perfect song for your mood, powered by AI.</p>
+        <div class="ai-mascot"></div>
+    </header>
+
+    <main class="container">
+        <form id="mood-form" class="mood-form">
+            <label for="mood-input" class="form-label">How are you feeling?</label>
+            <input type="text" class="form-control" id="mood-input" placeholder="Enter a sentence or describe your mood">
+            <button type="submit" class="btn btn-neon">Find a Song</button>
+        </form>
+
+        <div id="result" class="result-card hidden">
+            <h2>Your Mood: <span id="mood"></span></h2>
+            <h3>Recommended Genre: <span id="genre"></span></h3>
+            <h3>Recommended Song: <span id="song-title"></span></h3>
+            <div id="player"></div>
+        </div>
+    </main>
+
+    <section class="floating-mood-cards">
+        <div class="floating-card mood-happy">Happy 😊</div>
+        <div class="floating-card mood-sad">Sad 😢</div>
+        <div class="floating-card mood-energetic">Energetic ⚡</div>
+        <div class="floating-card mood-relaxed">Relaxed 🌿</div>
+        <div class="floating-card mood-romantic">Romantic ❤️</div>
+    </section>
+
+    <section class="recommendations">
+        <h2>Popular Recommendations</h2>
+        <div class="card-container">
+            <div class="card mood-card">
+                <h3>Happy Vibes</h3>
+                <p>"Can't Stop the Feeling" - Justin Timberlake</p>
+            </div>
+            <div class="card mood-card">
+                <h3>Sad & Soulful</h3>
+                <p>"Someone Like You" - Adele</p>
+            </div>
+            <div class="card mood-card">
+                <h3>High Energy</h3>
+                <p>"Stronger" - Kanye West</p>
+            </div>
+            <div class="card mood-card">
+                <h3>Chill & Relax</h3>
+                <p>"Sunflower" - Post Malone, Swae Lee</p>
+            </div>
+            <div class="card mood-card">
+                <h3>Romantic Feels</h3>
+                <p>"Perfect" - Ed Sheeran</p>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        let player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '360',
+                width: '640',
+                videoId: '',
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+        function onPlayerReady(event) {
+            event.target.playVideo();
+        }
+        document.getElementById('mood-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            let text = document.getElementById('mood-input').value;
+            fetch('/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `text=${encodeURIComponent(text)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('mood').textContent = data.mood;
+                document.getElementById('genre').textContent = data.genre;
+                document.getElementById('song-title').textContent = data.video_title;
+                player.loadVideoById(data.video_id);
+                document.getElementById('result').classList.remove('hidden');
+            });
+        });
+    </script>
+</body>
+</html>
